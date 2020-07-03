@@ -1,0 +1,308 @@
+---
+title: "The Economy in Charts"
+author: "Stephen Lee"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  bookdown::pdf_document2:
+    number_sections: true
+    keep_tex: true
+    toc: false
+  word_document:
+    toc: false
+header-includes: 
+- \usepackage{graphicx}
+- \usepackage{float}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = FALSE,
+    message=FALSE,
+    warning=FALSE,
+    fig.align='center',
+    fig.pos = 'H',
+    fig.height=2, 
+    fig.width=7
+)
+```
+
+```{r plot-tools}
+#-------------------------------- SECTION SETUP --------------------------------
+library(tidyverse)
+library(gridExtra)
+library(fredr)
+
+this_dir <- dirname(rstudioapi::getSourceEditorContext()$path)
+setwd(this_dir)
+
+source("./utils/config.R")
+source("./utils/pltlib.R")
+source("./utils/theme_wsj.R")
+
+fredr_set_key(FRED_KEY)
+
+# STORAGE 
+start_date <- as.Date("1995-01-01")
+unit_change <- "pc1"
+unit_level <- "lin"
+label_percent <- "Percent"
+label_dollars <- "USD"
+recession <- "USRECM"
+recession_dates <- get_recessions(start_date = start_date)
+```
+
+\newpage
+# Monetary Policy 
+```{r mp}
+#-------------------------------- SECTION SETUP --------------------------------
+ten_two_year_spread <- "T10Y2Y"
+ten_year_level      <- "DGS10"
+two_year_level      <- "DGS2"
+effective_ffr       <- "DFF"
+```
+
+## Interest Rates
+The federal funds rate is the interest rate at which depository institutions trade federal funds (balances held at Federal Reserve Banks) with each other overnight. When a depository institution has surplus balances in its reserve account, it lends to other banks in need of larger balances. In simpler terms, a bank with excess cash, which is often referred to as liquidity, will lend to another bank that needs to quickly raise liquidity. The rate that the borrowing institution pays to the lending institution is determined between the two banks; the weighted average rate for all of these types of negotiations is called the effective federal funds rate. The effective federal funds rate is essentially determined by the market but is influenced by the Federal Reserve through open market operations to reach the federal funds rate target.
+
+Treasury yields are of 2 and 10-Year constant maturity rates. 
+```{r tenlevel}
+d <- c(effective_ffr, two_year_level, ten_year_level)
+labels <- c("FFR", "2Y", "10Y")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels=labels)
+```
+
+## Ten Year Minus Two Year
+10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity
+```{r tentwo}
+plt(ten_two_year_spread, start_date, unit_level, recession_dates)
+```
+
+\newpage
+# Inflation 
+```{r inflation}
+#-------------------------------- SECTION SETUP --------------------------------
+cpi                 <- "FPCPITOTLZGUSA"
+pce                 <- "PCETRIM12M159SFRBDAL"
+five_yr_breakeven   <- "T5YIE"
+fivey_fivey         <- "T5YIFR"
+```
+
+## CPI and PCE
+Inflation as measured by the consumer price index reflects the annual percentage change in the cost to the average consumer of acquiring a basket of goods and services that may be fixed or changed at specified intervals, such as yearly. The Laspeyres formula is generally used.
+
+The Trimmed Mean PCE inflation rate produced by the Federal Reserve Bank of Dallas is an alternative measure of core inflation in the price index for personal consumption expenditures (PCE). The data series is calculated by the Dallas Fed, using data from the Bureau of Economic Analysis (BEA). Calculating the trimmed mean PCE inflation rate for a given month involves looking at the price changes for each of the individual components of personal consumption expenditures. The individual price changes are sorted in ascending order from “fell the most” to “rose the most,” and a certain fraction of the most extreme observations at both ends of the spectrum are thrown out or trimmed. The inflation rate is then calculated as a weighted average of the remaining components. The trimmed mean inflation rate is a proxy for true core PCE inflation rate. The resulting inflation measure has been shown to outperform the more conventional “excluding food and energy” measure as a gauge of core inflation.
+```{r pce}
+d <- c(cpi, pce)
+labels <- c("CPI", "PCE")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels=labels)
+```
+
+## Inflation Expectations
+The breakeven inflation rate represents a measure of expected inflation derived from 5-Year Treasury Constant Maturity Securities and 5-Year Treasury Inflation-Indexed Constant Maturity Securities. The latest value implies what market participants expect inflation to be in the next 5 years, on average. 
+
+The Five Year - Five Year Forward (5Y5Y) is a measure of expected inflation (on average) over the five-year period that begins five years from today.
+
+```{r futureinflation}
+d <- c(five_yr_breakeven, fivey_fivey)
+labels <- c("5Y Breakeven", "5Y5Y")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels=labels)
+```
+
+\newpage
+# Financial Markets 
+```{r finmarkets}
+#-------------------------------- SECTION SETUP --------------------------------
+sp500               <- "SP500"
+nasdaq              <- "NASDAQCOM"
+micro_cap           <- "WILLMICROCAP"
+small_cap           <- "WILLSMLCAPPR"
+mid_cap             <- "WILLMIDCAPPR"
+```
+
+## S&P 500 Index 
+The S&P 500 is regarded as a gauge of the large cap U.S. equities market. The index includes 500 leading companies in leading industries of the U.S. economy, which are publicly held on either the NYSE or NASDAQ, and covers 75% of U.S. equities. Since this is a price index and not a total return index, the S&P 500 index here does not contain dividends.
+```{r sp500}
+plt(sp500, start_date, unit_level, recession_dates, "Index")
+```
+
+## NASDAQ
+The NASDAQ Composite Index is a market capitalization weighted index with more than 3000 common equities listed on the NASDAQ Stock Market. The types of securities in the index include American depositary receipts (ADRs), common stocks, real estate investment trusts (REITs), and tracking stocks. The index includes all NASDAQ listed stocks that are not derivatives, preferred shares, funds, exchange-traded funds (ETFs) or debentures.
+```{r nasdaq}
+plt(nasdaq, start_date, unit_level, recession_dates, "Index")
+```
+
+## Wilshire Index - Mid Cap
+```{r midcap}
+plt(mid_cap, start_date, unit_level, recession_dates, "Index")
+```
+
+## Wilshire Index - Small Cap
+```{r smallcap}
+plt(small_cap, start_date, unit_level, recession_dates, "Index")
+```
+
+## Wilshire Index - Micro Cap
+```{r microcap}
+plt(micro_cap, start_date, unit_level, recession_dates, "Index")
+```
+
+\newpage
+# Corporate Banking 
+```{r corpbank}
+#-------------------------------- SECTION SETUP --------------------------------
+# corporate loan info 
+ci_loans            <- "TOTCI"
+ci_loans_small      <- "ACILOB"
+
+# deliquiency info 
+ci_delinq_all       <- "DRBLACBS"
+ci_delinq_top       <- "DRBLT100S"
+ci_delinq_bottom    <- "DRBLOBS"
+
+# charge off rates 
+nci_chargeoff        <- "NCOALLCIACB"
+
+# sloos
+ci_tight_stds_lg     <- "DRTSCILM"
+ci_tight_stds_sm     <- "DRTSCIS"
+ci_demand_lg         <- "DRSDCILM"
+ci_demand_sm         <- "DRSDCIS"
+```
+
+## C&I Loans 
+```{r ci}
+d <- c(ci_loans, ci_loans_small)
+labels <- c("All Banks", "Small Banks")
+names(labels) <- d
+plt(d, start_date, unit_change, recession_dates, labels=labels)
+```
+
+## C&I Delinquency
+```{r cidelinq}
+d <- c(ci_delinq_all, ci_delinq_top, ci_delinq_bottom)
+labels <- c("All Banks", "Top 100 Banks", "Excluding Top 100")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels = labels)
+```
+
+## C&I Charge-Offs 
+Charge-offs are the value of loans and leases removed from the books and charged against loss reserves. This includes all commercial banks. 
+```{r chargeoffs}
+plt(nci_chargeoff, start_date, unit_level, recession_dates, "Million USD")
+```
+
+## SLOOS Reporting Tighter Standards - C&I Loans
+This is the net percentage of domestic banks reporting tightening standards for commercial and industrial loans. "Large Firms" refers to loans made to large and middle-market firms. 
+```{r sloosstds}
+d <- c(ci_tight_stds_lg, ci_tight_stds_sm)
+labels <- c("Large Firms", "Small Firms")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels=labels)
+```
+
+## SLOOS Reporting Increased Demand - C&I Loans
+This is the net percentage of domestic banks reporting stronger demand for commercial and industrial loans. "Large Firms" refers to loans made to large and middle-market firms.
+```{r sloosdemand}
+d <- c(ci_demand_lg, ci_demand_sm)
+labels <- c("Large Firms", "Small Firms")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels=labels)
+```
+
+\newpage
+# Corporate Bonds 
+```{r corpbond}
+#-------------------------------- SECTION SETUP --------------------------------
+aaa                  <- "BAMLC0A1CAAA"
+bbb                  <- "BAMLC0A4CBBB"
+bb                   <- "BAMLH0A1HYBB"
+b                    <- "BAMLH0A2HYB"
+ccc                  <- "BAMLH0A3HYC"
+corp_1to3_yr         <- "BAMLC1A0C13Y"
+corp_7to10_yr        <- "BAMLC4A0C710Y"
+```
+
+## Option Adjusted Spreads - Investment Grade
+The ICE BofAML Option-Adjusted Spreads (OASs) are the calculated spreads between a computed OAS index of all bonds in a given rating category and a spot Treasury curve. An OAS index is constructed using each constituent bond‚ OAS, weighted by market capitalization.
+```{r igspreads}
+d <- c(aaa, bbb)
+labels <- c("AAA", "BBB")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels=labels)
+```
+
+## Option Adjusted Spreads - Junk
+```{r junkspreads}
+d <- c(bb, b, ccc)
+labels <- c("BB", "B", "CCC")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels=labels)
+```
+
+## Forward Looking Option Adjusted Spreads
+The US Corporate 1-3 Year OAS is a subset of the ICE BofAML US Corporate Master OAS, BAMLC0A0CM. This subset includes all securities with a remaining term to maturity of less than 3 years. When the last calendar day of the month takes place on the weekend, weekend observations will occur as a result of month ending accrued interest adjustments. Similar arguement for the 7-10 Year. 
+```{r forwardspreads}
+d <- c(corp_1to3_yr, corp_7to10_yr)
+labels <- c("1-3 Years", "7-10 Years")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels=labels)
+```
+
+\newpage
+# Housing 
+```{r housing}
+#-------------------------------- SECTION SETUP --------------------------------
+national             <- "CSUSHPISA"
+atl                  <- "ATXRSA"
+sf                   <- "SFXRSA"
+chi                  <- "CHXRSA"
+seattle              <- "SEXRSA"
+dallas               <- "DAXRSA"
+detroit              <- "DEXRSA"
+cleveland            <- "CEXRSA"
+
+# mortgage rates 
+thirty_yr_fixed      <- "MORTGAGE30US"
+fifteen_yr_fixed     <- "MORTGAGE15US"
+```
+
+## Mortgage Rates 
+```{r mortgage}
+d <- c(fifteen_yr_fixed, thirty_yr_fixed)
+labels <- c("15Y", "30Y")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, labels=labels)
+```
+
+## S&P/Case-Shiller Home Price Index
+```{r hpi}
+d <- c(national, atl, sf, chi, detroit)
+labels <- c("National", "Atlanta", "San Francisco", "Chicago", "Detroit")
+names(labels) <- d
+plt(d, start_date, unit_level, recession_dates, "Index", labels=labels)
+```
+
+\newpage
+# Labor Markets
+```{r labor}
+#-------------------------------- SECTION SETUP --------------------------------
+prof_services_emp    <- "USPBS"  # want pct change from year ago 
+prime_age_emp        <- "LREM25TTUSM156S" # level and pct change
+prime_age_male_emp   <- "LREM25MAUSM156S" # level and pct change 
+```
+
+## Prime Age Employment - Aged 25-54
+```{r primeempl}
+d <- c(prime_age_emp, prime_age_male_emp)
+labels <- c("All", "Males")
+names(labels) <- d
+plt(d, start_date, unit_change, recession_dates, "Change %", labels=labels)
+```
+
+## Professional Services Employment
+```{r profserivesemp}
+plt(prof_services_emp, start_date, unit_change, recession_dates, "Change %")
+```
