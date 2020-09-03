@@ -1,5 +1,12 @@
 plt <- function(
-    series, start_date, unit, recession_dates, ylabel="%", labels=NA) {
+    series, 
+    start_date, 
+    unit, 
+    recession_dates, 
+    ylabel="", 
+    labels=NA, 
+    ...
+) {
 #' Plot one or several series and include recession shading, and both 
 #' a long term and shorter term view of the data 
 
@@ -17,10 +24,13 @@ plt <- function(
     # Plot the long range series
     long_plt <- ggplot() +
         geom_rect(data=recession_dates, 
-                  mapping=aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
-                  fill="grey", alpha=.75) + 
+            mapping=aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
+            fill="grey", alpha=.75) + 
         geom_line(data=data, mapping=aes(date, value, color=series_id)) +
-        geom_hline(yintercept = 0, color = "black") +
+        geom_hline(yintercept = 0, color = "darkgrey") +
+        scale_y_continuous(
+            labels = label_wsj(accuracy = 1, ...)
+        ) +
         labs(y=ylabel) +
         theme_wsj() + 
         theme(
@@ -30,10 +40,13 @@ plt <- function(
     # Plot the short range series
     short_plt <- ggplot() +
         geom_rect(data=recession_dates, 
-                  mapping=aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
-                  fill="grey", alpha=.75) + 
+            mapping=aes(xmin=start, xmax=end, ymin=-Inf, ymax=Inf),
+            fill="grey", alpha=.75) + 
         geom_line(data=data, mapping=aes(date, value, color=series_id)) +
-        geom_hline(yintercept = 0, color = "black") +
+        geom_hline(yintercept = 0, color = "darkgrey") +
+        scale_y_continuous(
+            labels = scales::label_comma(accuracy = 1)
+        ) +
         scale_x_date(limits = c(short_date, today), date_labels = "%b") +
         theme_wsj() + 
         theme (
@@ -72,7 +85,7 @@ get_data <- function(series, start_date, unit) {
         s2 <- series[2:length(series)]
         t1 <- get_data(s1, start_date, unit)
         t2 <- get_data(s2, start_date, unit) 
-        return (bind_rows(t1, t2))
+        return(bind_rows(t1, t2))
     }
 }
 

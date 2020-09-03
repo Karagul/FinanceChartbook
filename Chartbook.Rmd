@@ -31,13 +31,12 @@ knitr::opts_chunk$set(
 library(tidyverse)
 library(gridExtra)
 library(fredr)
+library(here)
 
-this_dir <- dirname(rstudioapi::getSourceEditorContext()$path)
-setwd(this_dir)
-
-source("./utils/config.R")
-source("./utils/pltlib.R")
-source("./utils/theme_wsj.R")
+source(here("utils", "config.R"))
+source(here("utils", "pltlib.R"))
+source(here("utils", "theme_wsj.R"))
+source(here("utils", "label_wsj.R"))
 
 fredr_set_key(FRED_KEY)
 
@@ -69,7 +68,7 @@ Treasury yields are of 2 and 10-Year constant maturity rates.
 d <- c(effective_ffr, two_year_level, ten_year_level)
 labels <- c("FFR", "2Y", "10Y")
 names(labels) <- d
-plt(d, start_date, unit_level, recession_dates, labels=labels)
+plt(d, start_date, unit_level, recession_dates, labels = labels)
 ```
 
 ## Ten Year Minus Two Year
@@ -125,28 +124,38 @@ mid_cap             <- "WILLMIDCAPPR"
 ## S&P 500 Index 
 The S&P 500 is regarded as a gauge of the large cap U.S. equities market. The index includes 500 leading companies in leading industries of the U.S. economy, which are publicly held on either the NYSE or NASDAQ, and covers 75% of U.S. equities. Since this is a price index and not a total return index, the S&P 500 index here does not contain dividends.
 ```{r sp500}
-plt(sp500, start_date, unit_level, recession_dates, "Index")
+plt(sp500, start_date, unit_level, recession_dates, "Index",
+  prefix = "", suffix = ""
+)
 ```
 
 ## NASDAQ
 The NASDAQ Composite Index is a market capitalization weighted index with more than 3000 common equities listed on the NASDAQ Stock Market. The types of securities in the index include American depositary receipts (ADRs), common stocks, real estate investment trusts (REITs), and tracking stocks. The index includes all NASDAQ listed stocks that are not derivatives, preferred shares, funds, exchange-traded funds (ETFs) or debentures.
 ```{r nasdaq}
-plt(nasdaq, start_date, unit_level, recession_dates, "Index")
+plt(nasdaq, start_date, unit_level, recession_dates, "Index",
+  prefix = "", suffix = ""
+)
 ```
 
 ## Wilshire Index - Mid Cap
 ```{r midcap}
-plt(mid_cap, start_date, unit_level, recession_dates, "Index")
+plt(mid_cap, start_date, unit_level, recession_dates, "Index", 
+    prefix = "", suffix = ""
+)
 ```
 
 ## Wilshire Index - Small Cap
 ```{r smallcap}
-plt(small_cap, start_date, unit_level, recession_dates, "Index")
+plt(small_cap, start_date, unit_level, recession_dates, "Index", 
+    prefix = "", suffix = ""
+)
 ```
 
 ## Wilshire Index - Micro Cap
 ```{r microcap}
-plt(micro_cap, start_date, unit_level, recession_dates, "Index")
+plt(micro_cap, start_date, unit_level, recession_dates, "Index", 
+    prefix = "", suffix = ""
+)
 ```
 
 \newpage
@@ -173,6 +182,8 @@ ci_demand_sm         <- "DRSDCIS"
 ```
 
 ## C&I Loans 
+The percent change from a year ago. 
+
 ```{r ci}
 d <- c(ci_loans, ci_loans_small)
 labels <- c("All Banks", "Small Banks")
@@ -180,7 +191,8 @@ names(labels) <- d
 plt(d, start_date, unit_change, recession_dates, labels=labels)
 ```
 
-## C&I Delinquency
+## C&I Delinquency Rate
+
 ```{r cidelinq}
 d <- c(ci_delinq_all, ci_delinq_top, ci_delinq_bottom)
 labels <- c("All Banks", "Top 100 Banks", "Excluding Top 100")
@@ -190,8 +202,11 @@ plt(d, start_date, unit_level, recession_dates, labels = labels)
 
 ## C&I Charge-Offs 
 Charge-offs are the value of loans and leases removed from the books and charged against loss reserves. This includes all commercial banks. 
+
 ```{r chargeoffs}
-plt(nci_chargeoff, start_date, unit_level, recession_dates, "Million USD")
+plt(nci_chargeoff, start_date, unit_level, recession_dates, 
+    prefix = "$ ", suffix = "M"
+)
 ```
 
 ## SLOOS Reporting Tighter Standards - C&I Loans
@@ -234,7 +249,7 @@ names(labels) <- d
 plt(d, start_date, unit_level, recession_dates, labels=labels)
 ```
 
-## Option Adjusted Spreads - Junk
+## Option Adjusted Spreads - High Yield
 ```{r junkspreads}
 d <- c(bb, b, ccc)
 labels <- c("BB", "B", "CCC")
@@ -248,7 +263,9 @@ The US Corporate 1-3 Year OAS is a subset of the ICE BofAML US Corporate Master 
 d <- c(corp_1to3_yr, corp_7to10_yr)
 labels <- c("1-3 Years", "7-10 Years")
 names(labels) <- d
-plt(d, start_date, unit_level, recession_dates, labels=labels)
+plt(d, start_date, unit_level, recession_dates, labels=labels, 
+    prefix = "", suffix = ""
+)
 ```
 
 \newpage
@@ -282,7 +299,9 @@ plt(d, start_date, unit_level, recession_dates, labels=labels)
 d <- c(national, atl, sf, chi, detroit)
 labels <- c("National", "Atlanta", "San Francisco", "Chicago", "Detroit")
 names(labels) <- d
-plt(d, start_date, unit_level, recession_dates, "Index", labels=labels)
+plt(d, start_date, unit_level, recession_dates, labels=labels, "Index",  
+    prefix = "", suffix = ""
+)
 ```
 
 \newpage
@@ -295,14 +314,18 @@ prime_age_male_emp   <- "LREM25MAUSM156S" # level and pct change
 ```
 
 ## Prime Age Employment - Aged 25-54
+Percent change in employment from a year ago. 
+
 ```{r primeempl}
 d <- c(prime_age_emp, prime_age_male_emp)
 labels <- c("All", "Males")
 names(labels) <- d
-plt(d, start_date, unit_change, recession_dates, "Change %", labels=labels)
+plt(d, start_date, unit_change, recession_dates, labels=labels)
 ```
 
 ## Professional Services Employment
+Percent change in employment from a year ago. 
+
 ```{r profserivesemp}
-plt(prof_services_emp, start_date, unit_change, recession_dates, "Change %")
+plt(prof_services_emp, start_date, unit_change, recession_dates)
 ```
